@@ -1,0 +1,11 @@
+{
+  "name": "core",
+  "description": "Basis-Workflow für alle Projekte: Rollen-Agents und Feature-Workflow.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Tobias Schwerin",
+    "url": "https://github.com/TobiSchwerin"
+  },
+  "repository": "https://github.com/TobiSchwerin/claude-plugins",
+  "license": "MIT"
+}

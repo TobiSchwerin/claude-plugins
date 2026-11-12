@@ -1,0 +1,15 @@
+{
+  "name": "tobi-tools",
+  "description": "Persönliche Agents, Skills und Hooks für Claude Code (Tobias Schwerin).",
+  "owner": {
+    "name": "Tobias Schwerin",
+    "url": "https://github.com/TobiSchwerin"
+  },
+  "plugins": [
+    {
+      "name": "core",
+      "source": "./plugins/core",
+      "description": "Basis-Workflow: Rollen-Agents (Architekt, Implementierer, Reviewer) und Feature-Workflow-Skill."
+    }
+  ]
+}
