@@ -9,7 +9,7 @@ Persönlicher Claude-Code-Marketplace `tobi-tools`. Enthält Agents, Skills und 
 plugins/core/
   .claude-plugin/plugin.json        Manifest
   agents/                           architect, implementer, reviewer
-  hooks/                            claude-brain: laden, Pflege anstoßen, Auto-Sync
+  hooks/                            claude-brain (brain_hook.py) und Leitplanken (guard.py)
   skills/feature-workflow/SKILL.md  Standardablauf Feature → PR
 ```
 
@@ -39,9 +39,19 @@ Pfad in `~/.claude/settings.json` eintragen (sonst Standard `~/claude-brain`):
 
 | Ereignis | Was passiert |
 |---|---|
-| SessionStart | `git pull` im Brain, `index.md` und die Projektkarte des aktuellen Repos kommen in den Kontext |
+| SessionStart | 4 Hooks (je max. 10.000 Zeichen): `git pull` + `index.md`, Brain-Regeln, Arbeitsregeln, Projektkarte des aktuellen Repos |
 | Stop | Brain geändert → Index bauen, committen, pushen. Neuer Commit im Arbeits-Repo → einmal Pflege anstoßen |
 | SessionEnd | Letzte Brain-Änderungen committen und pushen |
+
+## Leitplanken (guard.py, PreToolUse)
+
+| Stufe | Was |
+|---|---|
+| deny | Secret-Dateien anzeigen/lesen, Force-Push, Historie umschreiben, `rm -rf` auf breite Pfade, Push auf main ohne CHANGELOG-Eintrag |
+| ask | Docker-Volumes/Datenbanken löschen, UFW/SSH-Konfiguration, Repo löschen, `git reset --hard`, `git clean`, echte `.env` überschreiben |
+| frei | alles andere |
+
+`ask` erzwingt auch im Auto-Modus eine Rückfrage. Ohne Python >= 3.8 sind die Hooks aus; der Start-Hook meldet das.
 
 ## Lokal testen / validieren
 

@@ -1,7 +1,7 @@
 {
   "name": "core",
-  "description": "Basis-Workflow für alle Projekte: Rollen-Agents, Feature-Workflow und claude-brain-Hooks.",
-  "version": "0.2.0",
+  "description": "Basis-Workflow für alle Projekte: Rollen-Agents, Feature-Workflow, claude-brain-Hooks und Leitplanken.",
+  "version": "0.3.0",
   "author": {
     "name": "Tobias Schwerin",
     "url": "https://github.com/TobiSchwerin"

@@ -161,7 +161,7 @@ def bei_start(daten: dict, brain: Path) -> int:
 
     teile = [
         "## claude-brain – zentrales Gedächtnis von Tobias",
-        f"Pfad: `{brain}` · Regeln: `{brain / 'CLAUDE.md'}` (bei Bedarf lesen, vor jeder Änderung am Brain verbindlich).",
+        f"Pfad: `{brain}`. Regeln, Arbeitsregeln und Projektkarte folgen in eigenen Abschnitten.",
         "Notizen bei Bedarf über die Links im Index lesen. Änderungen am Brain werden nach jeder Antwort "
         "automatisch indiziert, committet und gepusht – nicht selbst committen.",
         "",
@@ -169,7 +169,43 @@ def bei_start(daten: dict, brain: Path) -> int:
     index = brain / "index.md"
     if index.is_file():
         teile.append(index.read_text(encoding="utf-8"))
+    if hinweise:
+        teile += ["", "## Warnungen claude-brain"] + [f"- {h}" for h in hinweise]
+    ausgabe(begrenzen("\n".join(teile) + "\n", brain / "index.md"))
+    return 0
 
+
+def bei_start_regeln(daten: dict, brain: Path) -> int:
+    """Weiterer SessionStart-Hook: Regeln des Brain. Jeder Hook hat seine eigene 10.000-Zeichen-Grenze.
+
+    Läuft parallel zum ersten Hook, deshalb hier kein git pull (Regeln ändern sich selten).
+    """
+    if not ist_brain(brain):
+        return 0
+    teile: list[str] = []
+    regeln = brain / "CLAUDE.md"
+    if regeln.is_file():
+        teile += ["## Regeln des claude-brain (CLAUDE.md, verbindlich für jede Änderung am Brain)",
+                  regeln.read_text(encoding="utf-8")]
+    ausgabe(begrenzen("\n".join(teile) + "\n", regeln))
+    return 0
+
+
+def bei_start_arbeitsregeln(daten: dict, brain: Path) -> int:
+    """Arbeitsregeln von Tobias – gelten in jeder Session, nicht nur bei Brain-Änderungen."""
+    datei = brain / "user" / "arbeitsregeln.md"
+    if ist_brain(brain) and datei.is_file():
+        ausgabe(begrenzen("## Arbeitsregeln von Tobias (verbindlich in jeder Session)\n"
+                          + datei.read_text(encoding="utf-8") + "\n", datei))
+    return 0
+
+
+def bei_start_projekt(daten: dict, brain: Path) -> int:
+    """Projektkarte des aktuellen Repos."""
+    if not ist_brain(brain):
+        return 0
+    teile: list[str] = []
+    repo = repo_wurzel(daten.get("cwd"))
     if repo and repo != brain.resolve():
         karte = brain / "projects" / f"{repo.name}.md"
         if karte.is_file():
@@ -177,11 +213,21 @@ def bei_start(daten: dict, brain: Path) -> int:
         else:
             teile += ["", f"Hinweis: Für das aktuelle Repo `{repo.name}` gibt es noch keine Projektkarte "
                           f"(`projects/{repo.name}.md`). Bei Gelegenheit anlegen."]
-
-    if hinweise:
-        teile += ["", "## Warnungen claude-brain"] + [f"- {h}" for h in hinweise]
-    ausgabe("\n".join(teile) + "\n")
+    if teile:
+        ausgabe(begrenzen("\n".join(teile) + "\n", brain / "projects"))
     return 0
+
+
+GRENZE = 9500  # Claude Code lagert Hook-Ausgaben ab 10.000 Zeichen in eine Datei aus
+
+
+def begrenzen(text: str, quelle: Path) -> str:
+    """Hält die Ausgabe unter der Grenze und sagt es laut, statt still Inhalt zu verlieren."""
+    if len(text) <= GRENZE:
+        return text
+    hinweis = (f"\n\n[GEKÜRZT: Ausgabe hat {len(text)} Zeichen, Grenze {GRENZE}. Vollständig in `{quelle}` lesen. "
+               "Tobias darauf hinweisen: Beschreibungen kürzen oder Notizen zusammenfassen.]\n")
+    return text[:GRENZE - len(hinweis)] + hinweis
 
 
 def bei_stop(daten: dict, brain: Path) -> int:
@@ -251,7 +297,8 @@ def main() -> int:
         daten = {}
     brain = brain_dir()
     try:
-        return {"start": bei_start, "stop": bei_stop, "end": bei_ende}.get(ereignis, lambda d, b: 0)(daten, brain)
+        return {"start": bei_start, "start-regeln": bei_start_regeln, "start-arbeitsregeln": bei_start_arbeitsregeln,
+                "start-projekt": bei_start_projekt, "stop": bei_stop, "end": bei_ende}.get(ereignis, lambda d, b: 0)(daten, brain)
     except Exception as fehler:  # niemals die Session blockieren
         print(f"claude-brain-Hook ({ereignis}) fehlgeschlagen: {fehler}", file=sys.stderr)
         return 0

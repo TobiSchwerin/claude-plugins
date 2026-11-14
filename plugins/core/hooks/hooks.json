@@ -1,14 +1,41 @@
 {
-  "description": "claude-brain: beim Start laden, nach Arbeitsblöcken Pflege anstoßen, Änderungen automatisch synchronisieren",
+  "description": "claude-brain (laden, Pflege anstoßen, Auto-Sync) und Leitplanken (deny/ask vor Tool-Aufrufen)",
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell|Read|Edit|Write|MultiEdit|Grep|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" guard.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "matcher": "startup|resume|clear|compact",
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" start",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" brain_hook.py start",
             "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" brain_hook.py start-regeln",
+            "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" brain_hook.py start-arbeitsregeln",
+            "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" brain_hook.py start-projekt",
+            "timeout": 15
           }
         ]
       }
@@ -18,7 +45,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" stop",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" brain_hook.py stop",
             "timeout": 60
           }
         ]
@@ -29,7 +56,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" end",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" brain_hook.py end",
             "timeout": 30
           }
         ]
