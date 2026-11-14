@@ -1,7 +1,7 @@
 {
   "name": "core",
-  "description": "Basis-Workflow für alle Projekte: Rollen-Agents, Feature-Workflow, claude-brain-Hooks und Leitplanken.",
-  "version": "0.3.0",
+  "description": "Basis-Workflow für alle Projekte: Requirements Engineer, Spec-getriebener Feature-Workflow, Projekt-Onboarding, Rollen-Agents, claude-brain-Hooks und Leitplanken.",
+  "version": "0.4.0",
   "author": {
     "name": "Tobias Schwerin",
     "url": "https://github.com/TobiSchwerin"

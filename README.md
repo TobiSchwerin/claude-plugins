@@ -5,13 +5,21 @@ Persönlicher Claude-Code-Marketplace `tobi-tools`. Enthält Agents, Skills und 
 ## Struktur
 
 ```
-.claude-plugin/marketplace.json     Katalog des Marketplace
+.claude-plugin/marketplace.json       Katalog des Marketplace
 plugins/core/
-  .claude-plugin/plugin.json        Manifest
-  agents/                           architect, implementer, reviewer
-  hooks/                            claude-brain (brain_hook.py) und Leitplanken (guard.py)
-  skills/feature-workflow/SKILL.md  Standardablauf Feature → PR
+  .claude-plugin/plugin.json          Manifest
+  agents/                             architect (Plan), implementer (Test zuerst), reviewer (unabhängige Prüfung)
+  skills/requirements/                Requirements Engineer: Interview → Spec mit Anforderungs-IDs (+ Vorlagen)
+  skills/feature-workflow/            Spec → Plan → Build → Prüfung → CHANGELOG → Push (+ Vorlagen)
+  skills/projekt-onboarding/          bestehendes Repo in die Struktur bringen
+  hooks/                              claude-brain (brain_hook.py) und Leitplanken (guard.py)
 ```
+
+## Ablauf pro Feature
+
+`requirements` (Interview, **Freigabe 1**) → `feature-workflow`: `architect` → `implementer` (je Aufgabe, Test erst rot)
+→ `reviewer` (frische Instanz, nur Spec) → **Freigabe 2** → CHANGELOG → Push.
+Rückverfolgbarkeit: ID `F-012.A1` steht in Spec, Plan-Aufgabe, Testname und Prüfbericht.
 
 ## Installation auf einem neuen Gerät
 

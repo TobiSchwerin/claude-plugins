@@ -1,17 +1,49 @@
 ---
 name: feature-workflow
-description: Standardablauf für ein neues Feature von der Idee bis zum Push auf main. Verwenden, wenn der Nutzer ein neues Feature, eine Erweiterung oder einen größeren Fix beauftragt.
+description: Baut ein Feature mit freigegebener Spec von der Architektur bis zum Push auf main – Plan mit Aufgaben pro Anforderungs-ID, Build mit Test-zuerst, unabhängige Prüfung, Prüfbericht, CHANGELOG. Verwenden, wenn Tobias ein Feature umsetzen lassen will oder ein abgebrochener Build fortgesetzt werden soll.
 ---
 
 # Feature-Workflow
 
-Der Nutzer ist Projektleiter: er gibt Ziele vor und gibt frei. Du koordinierst.
+Tobias ist Projektleiter. Du koordinierst die Agents `architect`, `implementer`, `reviewer` und schreibst selbst keinen
+Produktivcode. Der rote Faden: **jede Anforderungs-ID ist von der Spec über Aufgabe und Test bis zum Prüfbericht verfolgbar.**
 
-1. **Klären:** Ziel und Akzeptanzkriterien in 3–5 Punkten zusammenfassen. Nur bei echten Unklarheiten nachfragen (max. 3 Fragen auf einmal).
-2. **Planen:** Den Subagent `architect` den Plan und die Arbeitspakete erstellen lassen. Plan dem Nutzer kurz zur Freigabe zeigen.
-3. **Umsetzen:** Pro Arbeitspaket den Subagent `implementer` beauftragen, jeweils in einem eigenen Git-Worktree und Branch (`feat/<kurzname>`). Unabhängige Pakete parallel, abhängige nacheinander. Auf dem Pro-Plan maximal 2–3 parallel.
-4. **Prüfen:** Für jeden Branch den Subagent `reviewer` laufen lassen – **vor** dem Zusammenführen. Blocker zurück an `implementer`, bis keine mehr offen sind.
-5. **Abschließen:** Branches nach `main` zusammenführen, `CHANGELOG.md` ergänzen (Format siehe Arbeitsregeln: Datum, max. 3 Zeilen „Was – Warum“), committen, pushen. Ohne CHANGELOG-Eintrag blockiert der Leitplanken-Hook den Push.
-6. **Gedächtnis:** Nach dem Commit stößt der Brain-Hook die Pflege der Projektkarte an. Nur Zustand festhalten, kein Tagebuch.
+## 0. Voraussetzungen und Wiedereinstieg
+1. Spec `docs/specs/F-<NNN>-*.md` mit `status: freigegeben` (oder `in-arbeit` beim Fortsetzen). Keine Spec →
+   Skill `requirements`. Kleine Fehlerbehebungen ohne neues Verhalten brauchen keine Spec, aber einen Test, der den Fehler zeigt.
+2. Existiert `docs/plans/F-<NNN>.md`, dort weitermachen: offene Aufgaben ab dem ersten nicht erledigten Häkchen.
+3. Spec und FEATURES.md auf `in-arbeit` setzen.
 
-Abschlussbericht an den Nutzer: die CHANGELOG-Zeilen, wie geprüft wurde, offene Punkte.
+## 1. Architektur und Plan
+Subagent `architect` mit Spec-Pfad und dem **absoluten** Pfad zu `vorlagen/plan.md` aus dem Verzeichnis dieses Skills beauftragen
+(Subagents kennen den Plugin-Pfad nicht). Ergebnis: `docs/plans/F-<NNN>.md`.
+Prüfe selbst, bevor es weitergeht:
+- Jede ID der Spec steckt in mindestens einer Aufgabe. Fehlende IDs → zurück an `architect`.
+- Jede Aufgabe ist klein genug für einen frischen Kontext (Richtwert: ≤ 5 Dateien, ein klarer Zweck).
+- „Nur Tobias“-Aufgaben sind markiert.
+
+**Freigabe nur bei großen Features:** neues Datenmodell/Migration, neuer Dienst oder Container, Änderung an Infrastruktur,
+Sicherheit oder Sensor-API → Tobias Architektur und Aufgabenliste kurz zeigen und freigeben lassen. Sonst weiter.
+
+## 2. Build
+Pro Aufgabe einen `implementer` mit: Spec-Pfad, Plan-Pfad, Aufgabennummer. Parallel nur Aufgaben, die der Plan als
+parallel markiert, jeweils in eigenem Worktree/Branch `feat/F-<NNN>-<aufgabe>`. Auf Pro höchstens 2–3 gleichzeitig.
+- Nach jeder Aufgabe: Häkchen und Testnachweis im Plan prüfen (rot → grün dokumentiert). Fehlt der Nachweis, gilt sie nicht als erledigt.
+- Meldet ein `implementer`, dass die Spec nicht stimmt: **stoppen**, Tobias fragen, Spec über `requirements` anpassen.
+- Branches nach `main` zusammenführen (ohne Push), gesamte Testsuite und Production-Build einmal laufen lassen.
+
+## 3. Unabhängige Prüfung
+Einen **frischen** Subagent `reviewer` starten. Er bekommt nur: Spec-Pfad, Basis-Commit vor dem Feature, wie die App startet,
+absoluten Pfad zu `vorlagen/review.md` aus dem Verzeichnis dieses Skills.
+Nicht: Plan-Notizen, Build-Verlauf, deine Einschätzung. Ergebnis: `docs/reviews/F-<NNN>.md` nach `vorlagen/review.md`.
+- Nicht bestanden → Befund mit Reproduktionsweg an einen neuen `implementer`, danach Prüfung nur der betroffenen IDs
+  plus Regressionstests. Nach **3 Runden** ohne Erfolg: stoppen und Tobias die Lage schildern.
+
+## 4. Freigabe 2 und Abschluss
+Tobias den Bericht kompakt zeigen: Tabelle ID – Ergebnis, nicht prüfbare Punkte mit Grund, Übergaben an ihn.
+Nach seinem OK:
+1. `CHANGELOG.md` ergänzen (Datum, max. 3 Zeilen „Was – Warum“), Spec/FEATURES.md auf `fertig`.
+2. Committen und auf `main` pushen. Der Leitplanken-Hook prüft den CHANGELOG-Eintrag.
+3. Deploy nur, wenn das Repo dafür einen dokumentierten Ablauf hat (siehe CLAUDE.md des Repos).
+
+Abschlussbericht an Tobias: CHANGELOG-Zeilen, Prüfergebnis in einer Zeile, offene Punkte und Übergaben.
